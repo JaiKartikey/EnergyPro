@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prepaid Energy Monitor Pro</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f59e0b' d='M13 2 4 14h7l-1 8 9-12h-7z'/%3E%3C/svg%3E">
+  <!-- Chart.js for the Reports page. If the laptop has no internet, download chart.umd.js
+       into assets/js/ and point this tag at it instead. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+      <span>EnergyPro</span>
+    </div>
+    <nav class="nav">
+      <a href="#dashboard"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg><span>Dashboard</span></a>
+      <a href="#account"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5C21 16.5 17 14 12 14z"/></svg><span>Account</span></a>
+      <a href="#control"><svg viewBox="0 0 24 24"><path d="M11 2h2v10h-2zM6.3 5.3l1.4 1.4A7 7 0 1 0 16.3 6.7l1.4-1.4A9 9 0 1 1 6.3 5.3z"/></svg><span>Control</span></a>
+      <a href="#settings"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.3-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span>Settings</span></a>
+      <a href="#reports"><svg viewBox="0 0 24 24"><path d="M3 21V3h2v16h16v2zm4-4V10h3v7zm5 0V6h3v11zm5 0v-5h3v5z"/></svg><span>Reports</span></a>
+      <a href="#help"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 17h-2v-2h2zm2.1-7.7-.9.9c-.7.7-1.2 1.3-1.2 2.8h-2v-.5c0-1.1.4-2.1 1.2-2.8l1.2-1.3A2 2 0 1 0 10 9H8a4 4 0 1 1 7.1 2.3z"/></svg><span>Help</span></a>
+    </nav>
+    <div class="node-pill" id="nodePill"><span class="dot"></span><span id="nodePillText">Connecting…</span></div>
+    <a href="#" class="logout-link" id="logoutLink" hidden>Log out</a>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">Energy Dashboard</h1>
+        <p id="pageSub" class="muted">Real-time monitoring</p>
+      </div>
+      <div class="muted small" id="lastUpdated">Last updated: --</div>
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <!-- ---------- Dashboard ---------- -->
+    <section class="page" data-page="dashboard">
+      <div class="tiles">
+        <div class="tile">
+          <div class="tile-head"><span>BALANCE</span><i class="badge">₹</i></div>
+          <div class="tile-value"><span id="tBalance">--</span><small>₹</small></div>
+          <div class="muted small" id="tBalanceSub">Available credit</div>
+        </div>
+        <div class="tile">
+          <div class="tile-head"><span>VOLTAGE</span><i class="badge">V</i></div>
+          <div class="tile-value"><span id="tVoltage">--</span><small>V</small></div>
+          <div class="muted small">Line voltage</div>
+        </div>
+        <div class="tile">
+          <div class="tile-head"><span>CURRENT</span><i class="badge">A</i></div>
+          <div class="tile-value"><span id="tCurrent">--</span><small>A</small></div>
+          <div class="muted small">Line current</div>
+        </div>
+        <div class="tile">
+          <div class="tile-head"><span>POWER</span><i class="badge">W</i></div>
+          <div class="tile-value"><span id="tPower">--</span><small>W</small></div>
+          <div class="muted small">Active power</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>SYSTEM STATUS</h3>
+          <ul class="status-list">
+            <li><span><i class="dot" id="sPowerDot"></i>Power</span><b id="sPower">--</b></li>
+            <li><span><i class="dot" id="sFaultDot"></i>Fault Status</span><b id="sFault">--</b></li>
+            <li><span><i class="dot" id="sTheftDot"></i>Theft Detection</span><b id="sTheft">--</b></li>
+            <li><span><i class="dot ok"></i>Total Energy</span><b id="sEnergy">--</b></li>
+            <li><span><i class="dot" id="sUserDot"></i>Logged-in Student</span><b id="sUser">--</b></li>
+            <li><span><i class="dot" id="sNodeDot"></i>IoT Node</span><b id="sNode">--</b></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>QUICK ACTIONS</h3>
+          <p class="label">Control power supply</p>
+          <div class="btn-row">
+            <button class="btn btn-on" data-control="on">Power ON</button>
+            <button class="btn btn-off" data-control="off">Power OFF</button>
+          </div>
+          <p class="label">Quick recharge</p>
+          <form id="quickRecharge" class="recharge">
+            <div class="input-rs"><input type="number" name="amount" min="1" step="1" value="80" required><span>₹</span></div>
+            <button class="btn btn-primary" type="submit">Recharge Now</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Account ---------- -->
+    <section class="page" data-page="account" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h3>CURRENT SESSION</h3>
+          <div id="sessionBox" class="session muted">No student logged in. Tap a registered RFID card on the reader.</div>
+        </div>
+        <div class="card">
+          <h3>RECHARGE A STUDENT</h3>
+          <form id="userRecharge" class="form">
+            <label>Student<select name="user_id" id="rechargeUser" required></select></label>
+            <label>Amount (₹)<input type="number" name="amount" min="1" step="1" value="100" required></label>
+            <button class="btn btn-primary" type="submit">Recharge</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>REGISTERED RFID CARDS</h3>
+          <span class="muted small" id="userCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Name</th><th>Roll No.</th><th>Room</th><th>Card UID</th><th class="num">Balance (₹)</th><th>Status</th><th></th></tr></thead>
+            <tbody id="usersBody"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>REGISTER A NEW CARD</h3>
+        <p class="muted small">Tip: tap the new card on the reader first — the UID of an unknown card appears here automatically.</p>
+        <form id="addUser" class="form form-grid">
+          <label>Name<input name="name" maxlength="80" required></label>
+          <label>Roll No.<input name="roll_no" maxlength="20"></label>
+          <label>Room<input name="room" maxlength="20"></label>
+          <label>Card UID<input name="rfid_uid" id="newUid" maxlength="20" placeholder="e.g. 3A7F21C4" required></label>
+          <label>Opening balance (₹)<input type="number" name="balance" min="0" step="1" value="100"></label>
+          <button class="btn btn-primary" type="submit">Register card</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ---------- Control ---------- -->
+    <section class="page" data-page="control" hidden>
+      <div class="grid-2">
+        <div class="card relay-card">
+          <h3>RELAY / ROOM SUPPLY</h3>
+          <div class="relay-state" id="relayState">--</div>
+          <p class="muted small" id="relayNote">Commands reach the ESP32 on its next sync (about every 2 s).</p>
+          <div class="btn-row">
+            <button class="btn btn-on" data-control="on">Power ON</button>
+            <button class="btn btn-off" data-control="off">Power OFF</button>
+          </div>
+          <button class="btn btn-ghost wide" data-control="logout">End student session</button>
+        </div>
+        <div class="card">
+          <h3>NODE DETAILS</h3>
+          <ul class="status-list" id="nodeDetails"></ul>
+        </div>
+      </div>
+      <div class="card">
+        <h3>ACTIVITY LOG</h3>
+        <ul class="events" id="eventsList"><li class="muted">Loading…</li></ul>
+      </div>
+    </section>
+
+    <!-- ---------- Settings ---------- -->
+    <section class="page" data-page="settings" hidden>
+      <div class="card">
+        <h3>BILLING &amp; PROTECTION</h3>
+        <form id="settingsForm" class="form form-grid">
+          <label>Room / node name<input name="device_name" maxlength="40" required></label>
+          <label>Tariff (₹ per kWh)<input type="number" name="tariff_per_kwh" min="0" step="0.01" required></label>
+          <label>Low-balance warning (₹)<input type="number" name="low_balance" min="0" step="1" required></label>
+          <label>Min. voltage (V)<input type="number" name="volt_min" min="50" step="1" required></label>
+          <label>Max. voltage (V)<input type="number" name="volt_max" min="100" step="1" required></label>
+          <label>Theft current threshold (A)<input type="number" name="theft_current" min="0" step="0.001" required></label>
+          <label>Node sync interval (ms)<input type="number" name="poll_ms" min="500" step="100" required></label>
+          <label class="check"><input type="checkbox" name="auto_cutoff"> Cut supply automatically when balance reaches ₹0</label>
+          <button class="btn btn-primary" type="submit">Save settings</button>
+        </form>
+        <p class="muted small">A realistic tariff is about ₹8/kWh. With a 7 W test bulb the balance then barely moves, so for a classroom demo set a high tariff (around ₹950/kWh) and say so in the report.</p>
+      </div>
+    </section>
+
+    <!-- ---------- Reports ---------- -->
+    <section class="page" data-page="reports" hidden>
+      <div class="card">
+        <div class="card-head"><h3>POWER CONSUMPTION (W)</h3><button class="btn btn-small btn-primary" id="clearHistory">Clear</button></div>
+        <div class="chart-box"><canvas id="powerChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>BALANCE OVER TIME (₹)</h3>
+        <div class="chart-box"><canvas id="balanceChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>VOLTAGE &amp; CURRENT</h3>
+        <div class="chart-box"><canvas id="vcChart"></canvas></div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="tile-head"><span>PEAK POWER</span></div><div class="tile-value"><span id="rPeak">--</span><small>W</small></div></div>
+        <div class="tile"><div class="tile-head"><span>AVG POWER</span></div><div class="tile-value"><span id="rAvg">--</span><small>W</small></div></div>
+        <div class="tile"><div class="tile-head"><span>TOTAL ENERGY</span></div><div class="tile-value"><span id="rEnergy">--</span><small>Wh</small></div></div>
+        <div class="tile"><div class="tile-head"><span>TOTAL SPENT</span></div><div class="tile-value"><span id="rSpent">--</span><small>₹</small></div></div>
+      </div>
+      <p class="muted small" id="chartNote" hidden>Charts need Chart.js, which loads from the internet. Connect the laptop to the internet or use a local copy (see index.html).</p>
+    </section>
+
+    <!-- ---------- Help ---------- -->
+    <section class="page" data-page="help" hidden>
+      <div class="card prose">
+        <h3>HOW THE SYSTEM WORKS</h3>
+        <ol>
+          <li><b>Login:</b> the student taps their RFID card on the MFRC522 reader. The ESP32 sends the card UID to the server, which checks it against the registered cards and the prepaid balance.</li>
+          <li><b>Supply:</b> if the card is valid and the balance is above ₹0, the server sets the relay ON and the ESP32 switches it on its next sync. Tapping the same card again ends the session.</li>
+          <li><b>Metering:</b> every sync the ESP32 sends the PZEM-004T readings (voltage, current, power, energy). The server bills the new energy (Wh) at the set tariff and deducts it from the student's balance.</li>
+          <li><b>Protection:</b> the supply is cut automatically when the balance runs out or the voltage leaves the safe range. Current flowing while the relay is OFF raises a theft alert.</li>
+          <li><b>Remote control:</b> Power ON/OFF and recharges on this dashboard update the database, and the ESP32 picks them up within one sync interval.</li>
+        </ol>
+        <h3>DEVICE ENDPOINT</h3>
+        <p>The ESP32 talks only to <code>POST /api/device/sync</code> (Python / Flask, <code>app.py</code>) with header <code>X-Device-Key</code>. Pin wiring and setup steps are in <code>README.md</code>.</p>
+        <h3>TROUBLESHOOTING</h3>
+        <ul>
+          <li><b>IoT Node shows Offline:</b> check the ESP32 Wi-Fi details and the server IP in the firmware, and allow port 5000 through Windows Firewall.</li>
+          <li><b>Fault = SENSOR:</b> the PZEM-004T is not answering. It needs 230 V AC on its input terminals to respond, and TX/RX must be crossed.</li>
+          <li><b>Power ON refused:</b> a student must be logged in with a card and have a balance above ₹0.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="footer muted small">
+      <span id="footerUpdate">Last Update: --</span>
+      <span>Prepaid Energy Monitor Pro © 2026</span>
+    </footer>
+  </main>
+</div>
+
+<div id="loginOverlay" class="login-overlay" hidden>
+  <form id="loginForm" class="card login-card">
+    <div class="brand-dark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg> EnergyPro</div>
+    <p class="muted small">Enter the admin password to open the dashboard.</p>
+    <input type="password" name="password" autocomplete="current-password" required>
+    <button class="btn btn-primary" type="submit">Log in</button>
+  </form>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
